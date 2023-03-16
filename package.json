@@ -1,0 +1,22 @@
+{
+  "name": "mongoose-exercise",
+  "version": "1.0.0",
+  "description": "An exercise to learn how to implement persistence of a simple bank domain model using MongoDB via Mongoose Object Relational Mapping",
+  "main": "index.js",
+  "scripts": {
+    "test": "npx jest --verbose"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/U-Sahaj/mongoose-exercise.git"
+  },
+  "keywords": [
+    "mongoose"
+  ],
+  "author": "U-Sahaj",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/U-Sahaj/mongoose-exercise/issues"
+  },
+  "homepage": "https://github.com/U-Sahaj/mongoose-exercise#readme"
+}

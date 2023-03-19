@@ -4,7 +4,8 @@
   "description": "An exercise to learn how to implement persistence of a simple bank domain model using MongoDB via Mongoose Object Relational Mapping",
   "main": "index.js",
   "scripts": {
-    "test": "npx jest --verbose"
+    "test": "npx jest --verbose",
+    "start": "npx ts-node src/index.ts"
   },
   "repository": {
     "type": "git",
@@ -20,6 +21,11 @@
   },
   "homepage": "https://github.com/U-Sahaj/mongoose-exercise#readme",
   "dependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/mongodb": "^4.0.7",
+    "@types/mongoose": "^5.11.97",
+    "dotenv": "^16.0.3",
+    "mongodb": "^5.1.0",
     "mongoose": "^7.0.2"
   },
   "devDependencies": {

@@ -1,67 +1,82 @@
 import { IAccount } from "../interfaces/IAccount";
-import { IAccountFactory } from "../interfaces/IAccountFactory";
-import { IAccountRepository } from "../interfaces/IAccountRepository";
 import { ICustomer } from "../interfaces/ICustomer";
-import { ICustomerRepository } from "../interfaces/ICustomerRepository";
-import { ITransaction, TransactionType } from "../interfaces/ITransaction";
-import { ITransactionFactory } from "../interfaces/ITransactionFactory";
-import { ITransactionRepository } from "../interfaces/ITransactionRepository";
+import { ITransaction } from "../interfaces/ITransaction";
+import { CustomerFactory } from "../model/CustomerFactory";
+import { AccountFactory } from "../model/AccountFactory";
+import { TransactionFactory } from "../model/TransactionFactory";
 
-class AccountService {
-    constructor(
-      private accountRepository: IAccountRepository,
-      private transactionRepository: ITransactionRepository,
-      private accountFactory: IAccountFactory,
-      // private customerFactory: ICustomerFactory,
-      private transactionFactory: ITransactionFactory,
-      private customerRepository: ICustomerRepository
-    ) {}
-  
-    createAccount(customerId: string): IAccount {
-      const customer = this.customerRepository.get(customerId);
-      const account = this.accountFactory.createAccount(customer!);
-      this.accountRepository.save(account);
+export class AccountService {
+    private accounts: IAccount[] = [];
+    private customers: ICustomer[] = [];
+    private accountFactory = AccountFactory.getInstance();
+    private customerFactory = CustomerFactory.getInstance();
+    
+    public createCustomer(name: string): ICustomer {
+      const customerFactory = CustomerFactory.getInstance();
+      const customer = customerFactory.createCustomer(name);
+      this.customers.push(customer);
+      return customer;
+    }
+
+    public createAccount(customerId: string, initialBalance: number): IAccount {
+      const customer = this.customers.find((c) => c.id === customerId);
+      if (!customer) {
+        throw new Error(`Customer with ID ${customerId} not found`);
+      }
+      const account = customer.addAccount(initialBalance);
+      this.accounts.push(account);
       return account;
     }
-  
-    deposit(accountId: string, amount: number, description: string): void {
-      const account = this.accountRepository.get(accountId);
-      const transaction = account!.deposit(amount,description);
-      this.transactionRepository.save(transaction);
-      this.accountRepository.save(account);
+
+    public deposit(accountId: string, amount: number, description: string): void {
+      const account = this.accounts.find((a) => a.id === accountId);
+      if (!account) {
+        throw new Error(`Account with ID ${accountId} not found`);
+      }
+      account.deposit(amount, description);
     }
   
-    withdraw(accountId: string, amount: number, description: string): void {
-      const account = this.accountRepository.getAccountById(accountId);
-      const transaction = this.transactionFactory.createTransaction("debit", amount, description);
-      this.transactionRepository.save(transaction);
-      account.withdraw(amount);
-      this.accountRepository.saveAccount(account);
+    public withdraw(accountId: string, amount: number, description: string): void {
+      const account = this.accounts.find((a) => a.id === accountId);
+      if (!account) {
+        throw new Error(`Account with ID ${accountId} not found`);
+      }
+      const transactionFactory = TransactionFactory.getInstance();
+      const transaction = transactionFactory.createTransaction(amount, description);
+      account.withdraw(amount, description);
     }
   
-    getBalance(accountId: string): number {
-      const account = this.accountRepository.getAccountById(accountId);
+    public getBalance(accountId: string): number {
+      const account = this.accounts.find((a) => a.id === accountId);
+      if (!account) {
+        throw new Error(`Account with ID ${accountId} not found`);
+      }
       return account.getBalance();
     }
-  
-    getTransactions(accountId: string, count: number): ITransaction[] {
-      const account = this.accountRepository.getAccountById(accountId);
-      return account.getTransactions(count);
+    
+    public getTransactions(accountId: string, count: number): ITransaction[] {
+      const account = this.accounts.find((a) => a.id === accountId);
+      if (!account) {
+        throw new Error(`Account with ID ${accountId} not found`);
+      }
+      const transactions = account.getTransactions();
+      return transactions
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+        .slice(0, count)
+        .map((transaction) => ({
+          description: transaction.description,
+          date: transaction.date,
+          amount: transaction.amount,
+        }));
     }
   
-    listHighValueCustomers(): ICustomer[] {
-      const customers = this.customerRepository.getCustomers();
-      return customers.filter((customer) => {
-        const accounts = this.accountRepository.get(customer);
-        const totalBalance = accounts.reduce((balance, account) => balance + account.getBalance(), 0);
-        return totalBalance > 5000;
-      }).sort((customer1, customer2) => {
-        const accounts1 = this.accountRepository.get(customer1);
-        const accounts2 = this.accountRepository.get(customer2);
-        const totalBalance1 = accounts1.reduce((balance, account) => balance + account.getBalance(), 0);
-        const totalBalance2 = accounts2.reduce((balance, account) => balance + account.getBalance(), 0);
-        return totalBalance2 - totalBalance1;
-      });
+    public listHighValueCustomers(): ICustomer[] | undefined {
+      const highValueAccounts = this.accounts.filter((account) => account?.getBalance() > 5000).sort((a, b) => b.getBalance() - a.getBalance());
+      const highValueCustomers = highValueAccounts.map((account) => this.customers.find((customer) => customer?.id === account?.id));
+      return highValueCustomers.filter((customer) => customer !== undefined) as ICustomer[];
     }
+    
+    
+  
   }
   

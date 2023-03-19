@@ -1,4 +1,3 @@
-import { IAccount } from "./IAccount";
 
 export enum TransactionType {
     credit = 'credit',
@@ -6,17 +5,15 @@ export enum TransactionType {
 }
 
 export interface ITransactionType {
-    id: string;
-    date: Date;
-    type: TransactionType;
-    amount: number;
-    description: string;
-    accountId: string;
-}
+    readonly amount: number;
+    readonly description: string;
+    readonly date: Date;
+}  
 
 export interface ITransaction extends ITransactionType {
-    getAccountId(): string;
-    getDate(): Date;
-    getAmount(): number;
+    // getAccountId(): string;
+    // getDate(): Date;
+    // getAmount(): number;
 }
   
+
